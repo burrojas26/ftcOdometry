@@ -112,7 +112,23 @@ double getAvgDistance(vector<timePos> coordinates1, vector<timePos> coordinates2
     return avgDistance;
 }
 
+vector<pos2d> getKeyPts(vector<timePos> coordinates) {
+    int startX = coordinates[0].position.x;
+    int startY = coordinates[0].position.y;
+    int xMax = startX;
+    int yMax = startY;
+    vector<int> xMaxPos;
+    vector<int> yMaxPos;
+    for (timePos coord : coordinates) {
+        int x = coord.position.x;
+        int y = coord.position.y;
+        if (x > xMax) xMax = x;
+        else xMaxPos.push_back(xMax);
+        if (y > yMax) yMax = y;
+        else yMaxPos.push_back(yMax);
 
+    }
+}
 
 int main() {
     vector<string> strData = getData("data/05-02-2025-10-33.txt");
