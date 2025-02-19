@@ -12,6 +12,8 @@ struct pos2d{
     int x;
     int y;
     int h;
+
+    
 };
 
 struct gamePad {
@@ -112,22 +114,130 @@ double getAvgDistance(vector<timePos> coordinates1, vector<timePos> coordinates2
     return avgDistance;
 }
 
-vector<pos2d> getKeyPts(vector<timePos> coordinates) {
-    int startX = coordinates[0].position.x;
-    int startY = coordinates[0].position.y;
-    int xMax = startX;
-    int yMax = startY;
-    vector<int> xMaxPos;
-    vector<int> yMaxPos;
-    for (timePos coord : coordinates) {
-        int x = coord.position.x;
-        int y = coord.position.y;
-        if (x > xMax) xMax = x;
-        else xMaxPos.push_back(xMax);
-        if (y > yMax) yMax = y;
-        else yMaxPos.push_back(yMax);
+// vector<pos2d> getKeyPts(vector<timePos> coordinates) {
+//     int startX = coordinates[0].position.x;
+//     int startY = coordinates[0].position.y;
+//     int xMax = startX;
+//     int yMax = startY;
+//     vector<pos2d> allPts;
+//     for (timePos coord : coordinates) {
+//         int x = coord.position.x;
+//         int y = coord.position.y;
+//         if (xMax == NULL) {
+//             xMax = x;
+//         }
+//         if (yMax == NULL) {
+//             yMax = y;
+//         }
+//         if (x >= xMax) xMax = x;
+//         else {
+//             pos2d pos;
+//             pos.x = coord.position.x;
+//             pos.y = coord.position.y;
+//             pos.h = coord.position.h;
+//             allPts.push_back(pos);
+//             xMax = NULL;
+//         }
+//         if (y >= yMax) yMax = y;
+//         else {
+//             pos2d pos;
+//             pos.x = coord.position.x;
+//             pos.y = coord.position.y;
+//             pos.h = coord.position.h;
+//             allPts.push_back(pos);
+//             yMax = NULL;
+//         }
 
+//     }
+//     return allPts;
+// }
+
+vector<pos2d> getKeyPts(vector<timePos> coordinates) {
+    vector<pos2d> allPts;
+    vector<pos2d> xPts;
+    vector<pos2d> yPts;
+    int addedX = coordinates[0].position.x;
+    int addedY = coordinates[0].position.y;
+    pos2d xPt = coordinates[0].position;
+    pos2d yPt = coordinates[0].position;
+    bool xPos = NULL;
+    bool yPos = NULL;
+    for (int i = 0; i < coordinates.size(); i++) {
+        int x = coordinates[i].position.x;
+        int y = coordinates[i].position.y;
+        if (xPt.x != x) {
+            if (x < xPt.x) {
+                if (xPos && xPos != NULL) {
+                    xPts.push_back(xPt);
+                    addedX = xPt.x;
+                    xPos = NULL;
+                }
+                else {
+                    xPos = false;
+                }
+            }
+            if (x > xPt.x) {
+                if (!xPos && xPos != NULL) {
+                    xPts.push_back(xPt);
+                    addedX = xPt.x;
+                    xPos = NULL;
+                }
+                else {
+                    xPos = true;
+                }
+            }
+            xPt = coordinates[i].position;
+        }
+        else if (xPt.x != addedX) {
+            xPts.push_back(coordinates[i].position);
+            addedX = xPt.x;
+        }
+
+        if (yPt.y != y) {
+            if (y < yPt.y) {
+                if (yPos && yPos != NULL) {
+                    yPts.push_back(yPt);
+                    addedY = yPt.y;
+                    yPos = NULL;
+                }
+                else {
+                    yPos = false;
+                }
+            }
+            if (y > yPt.y) {
+                if (!yPos && yPos != NULL) {
+                    yPts.push_back(yPt);
+                    addedY = yPt.y;
+                    yPos = NULL;
+                }
+                else {
+                    yPos = true;
+                }
+            }
+            yPt = coordinates[i].position;
+        }
+        else if (yPt.y != addedY) {
+            yPts.push_back(coordinates[i].position);
+            addedY = yPt.y;
+        }
     }
+    allPts.push_back(coordinates[0].position);
+    
+    for (pos2d xPt : xPts) {
+        allPts.push_back(xPt);
+    }
+    for (pos2d yPt : yPts) {
+        allPts.push_back(yPt);
+    }
+    allPts.push_back(coordinates[coordinates.size()-1].position);
+    return allPts;
+}
+
+string toStr(pos2d pos) {
+    string str = "(" + pos.x;
+    str += ", " + pos.y;
+    str += ")";
+    return str;
 }
 
 int main() {
@@ -147,5 +257,11 @@ int main() {
     //     cout << ctime(&coord.time) << "\n";
     // }
     double avg = getAvgDistance(coordinates, coordinates2);
-    cout << avg;
+    cout << "Average:" << avg << "\n";
+    vector<pos2d> pts = getKeyPts(coordinates);
+    cout << "Points:" << "\n";
+    for (pos2d pt : pts) {
+        cout << "(" << pt.x << ", " << pt.y << ")" << "\n";
+    }
+
 }
