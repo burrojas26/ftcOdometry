@@ -125,92 +125,94 @@ string toStr(pos2d pos) {
 }
 
 // Returns a vector of the key points in the list of coordinates
-vector<pos2d> getKeyPts(vector<timePos> coordinates) {
+vector<pos2d> getKeyPts(timePos coordinates[], int size) {
     vector<pos2d> allPts;
+    // added X and Y represent the most recent x or y values added to the key points list
     int addedX = coordinates[0].position.x;
     int addedY = coordinates[0].position.y;
-    pos2d lastX = coordinates[0].position;
-    pos2d lastY = coordinates[0].position;
+    // last represents the point that was analyzed prior to the current point
+    pos2d lastPt = coordinates[0].position;
     // Represents whether the current line is increasing, decreasing, or remaining flat
     // 1, -1, 0
-    int xPos = 0;
-    int yPos = 0;
+    int xDir = 0;
+    int yDir = 0;
     allPts.push_back(coordinates[0].position);
     // Checks whether each point is increasing, decreasing, or remaining the same
-    for (int i = 0; i < coordinates.size(); i++) {
+    for (int i = 0; i < size; i++) {
         int x = coordinates[i].position.x;
         int y = coordinates[i].position.y;
         // Checking if the previous point was a local min or max in the x axis
-        if (lastX.x != x) {
-            if (x < lastX.x) {
-                if (xPos==1) {
-                    allPts.push_back(lastX);
-                    addedX = lastX.x;
-                    xPos = 0;
+        if (lastPt.x != x) {
+            if (x < lastPt.x) {
+                if (xDir==1) {
+                    allPts.push_back(lastPt);
+                    addedX = lastPt.x;
+                    xDir = 0;
                 }
                 else {
-                    xPos = -1;
+                    xDir = -1;
                 }
             }
-            if (x > lastX.x) {
-                if (xPos==-1) {
+            if (x > lastPt.x) {
+                if (xDir==-1) {
                     
-                    allPts.push_back(lastX);
-                    addedX = lastX.x;
-                    xPos = 0;
+                    allPts.push_back(lastPt);
+                    addedX = lastPt.x;
+                    xDir = 0;
                 }
                 else {
-                    xPos = 1;
+                    xDir = 1;
                 }
             }
-            lastX = coordinates[i].position;
         }
-        else if (lastX.x != addedX) {
-            allPts.push_back(lastX);
-            addedX = lastX.x;
-            xPos = 0;
+        else if (lastPt.x != addedX) {
+            allPts.push_back(lastPt);
+            addedX = lastPt.x;
+            xDir = 0;
         }
 
         // Checking if the previous point was a local min or max in the y axis
-        if (lastY.y != y) {
-            if (y < lastY.y) {
-                if (yPos==1) {
-                    allPts.push_back(lastY);
-                    addedY = lastY.y;
-                    yPos = 0;
+        if (lastPt.y != y) {
+            if (y < lastPt.y) {
+                if (yDir==1) {
+                    allPts.push_back(lastPt);
+                    addedY = lastPt.y;
+                    yDir = 0;
                 }
                 else {
-                    yPos = -1;
+                    yDir = -1;
                 }
             }
-            if (y > lastY.y) {
-                if (yPos==-1) {
+            if (y > lastPt.y) {
+                if (yDir==-1) {
                     
-                    allPts.push_back(lastY);
-                    addedY = lastY.y;
-                    yPos = 0;
+                    allPts.push_back(lastPt);
+                    addedY = lastPt.y;
+                    yDir = 0;
                 }
                 else {
-                    yPos = 1;
+                    yDir = 1;
                 }
             }
-            lastY = coordinates[i].position;
         }
-        else if (lastY.y != addedY) {
-            allPts.push_back(lastY);
-            addedY = lastY.y;
-            yPos = 0;
+        else if (lastPt.y != addedY) {
+            allPts.push_back(lastPt);
+            addedY = lastPt.y;
+            yDir = 0;
         }
         
+        lastPt = coordinates[i].position;
+
         pos2d last = allPts[allPts.size()-1];
         pos2d secondLast = allPts[allPts.size()-2];
         if (last.x == secondLast.x && last.y == secondLast.y) {
             allPts.pop_back();
         }
 
+
     }
     
-    allPts.push_back(coordinates[coordinates.size()-1].position);
+    allPts.push_back(coordinates[size-1].position);
     return allPts;
 }
 
@@ -219,20 +221,18 @@ vector<pos2d> getKeyPts(vector<timePos> coordinates) {
 // Main function that runs the code
 int main() {
     vector<string> strData = getData("data/05-02-2025-10-33.txt");
-    vector<string> strData2 = getData("data/05-02-2025-10-34.txt");
+    int numLines = strData.size();
     const char* format = "dd, MM, yyyy, HH, mm, ss";
-    vector<timePos> coordinates;
-    vector<timePos> coordinates2;
+
+    timePos coordinates[numLines];
+
     // Parsing string data
-    for (string str : strData) {
-        coordinates.push_back(parseDateTime(str));
-    }
-    for (string str : strData2) {
-        coordinates2.push_back(parseDateTime(str));
+    for (int i = 0; i < numLines; i++) {
+        coordinates[i] = parseDateTime(strData[i]);
     }
     //double avg = getAvgDistance(coordinates, coordinates2);
     //cout << "Average:" << avg << "\n";
-    vector<pos2d> pts = getKeyPts(coordinates);
+    vector<pos2d> pts = getKeyPts(coordinates, numLines);
     cout << "Points:" << "\n";
     for (pos2d pt : pts) {
         cout << "(" << pt.x << ", " << pt.y << ")" << "\n";
