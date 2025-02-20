@@ -8,24 +8,25 @@
 
 using namespace std;
 
+// Struct to represnt a 2d coordinate with heading
 struct pos2d{
     int x;
     int y;
     int h;
-
-    
 };
 
+// Struct to represent a game controller
 struct gamePad {
     float ly;
     float lx;
     float rx;
 };
 
+// Struct to represent a coordinate in time
 struct timePos{
     time_t time;
     pos2d position;
-    gamePad gamePad;
+    //gamePad gamePad;
 };
 
 // function to parse a date or time string.
@@ -68,14 +69,13 @@ timePos parseDateTime(string datetimeString)
     game.lx = stof(dateInfo[10]);
     game.rx = stof(dateInfo[11]);
 
-    // Daylight Savings must be specified
-    // -1 uses the computer's timezone setting
+    // -1 corresponds to the local time zone setting
     datetime.tm_isdst = -1;
     time_t time = mktime(&datetime);
     timePos timePos;
     timePos.time = time;
     timePos.position = position;
-    timePos.gamePad = game;
+    //timePos.gamePad = game;
     return(timePos);
 }
 
@@ -91,12 +91,14 @@ vector<string> getData(string theFile) {
     return allText;
 }
 
+// Calculates the similarity between the 2 paths
+// Includes time
 double getAvgDistance(vector<timePos> coordinates1, vector<timePos> coordinates2) {
     double avgDistance;
-    if (size(coordinates1) <= size(coordinates2)) {
+    if (coordinates1.size() <= coordinates2.size()) {
         double distances = 0;
-        int len = size(coordinates1);
-        for (int i = 0; i < size(coordinates1); i++) {
+        int len = coordinates1.size();
+        for (int i = 0; i < coordinates1.size(); i++) {
             double distance = sqrt(pow((coordinates2[i].position.y-coordinates1[i].position.y), 2) + pow((coordinates2[i].position.x-coordinates1[i].position.x), 2));
             distances += distance;
         }
@@ -104,8 +106,8 @@ double getAvgDistance(vector<timePos> coordinates1, vector<timePos> coordinates2
     }
     else {
         double distances = 0;
-        int len = size(coordinates2);
-        for (int i = 0; i < size(coordinates2); i++) {
+        int len = coordinates2.size();
+        for (int i = 0; i < coordinates2.size(); i++) {
             double distance = sqrt(pow((coordinates2[i].position.y-coordinates1[i].position.y), 2) + pow((coordinates2[i].position.x-coordinates1[i].position.x), 2));
             distances += distance;
         }
@@ -114,125 +116,86 @@ double getAvgDistance(vector<timePos> coordinates1, vector<timePos> coordinates2
     return avgDistance;
 }
 
-// vector<pos2d> getKeyPts(vector<timePos> coordinates) {
-//     int startX = coordinates[0].position.x;
-//     int startY = coordinates[0].position.y;
-//     int xMax = startX;
-//     int yMax = startY;
-//     vector<pos2d> allPts;
-//     for (timePos coord : coordinates) {
-//         int x = coord.position.x;
-//         int y = coord.position.y;
-//         if (xMax == NULL) {
-//             xMax = x;
-//         }
-//         if (yMax == NULL) {
-//             yMax = y;
-//         }
-//         if (x >= xMax) xMax = x;
-//         else {
-//             pos2d pos;
-//             pos.x = coord.position.x;
-//             pos.y = coord.position.y;
-//             pos.h = coord.position.h;
-//             allPts.push_back(pos);
-//             xMax = NULL;
-//         }
-//         if (y >= yMax) yMax = y;
-//         else {
-//             pos2d pos;
-//             pos.x = coord.position.x;
-//             pos.y = coord.position.y;
-//             pos.h = coord.position.h;
-//             allPts.push_back(pos);
-//             yMax = NULL;
-//         }
-
-//     }
-//     return allPts;
-// }
-
+// Returns a vector of the key points in the list of coordinates
 vector<pos2d> getKeyPts(vector<timePos> coordinates) {
     vector<pos2d> allPts;
-    vector<pos2d> xPts;
-    vector<pos2d> yPts;
     int addedX = coordinates[0].position.x;
     int addedY = coordinates[0].position.y;
     pos2d xPt = coordinates[0].position;
     pos2d yPt = coordinates[0].position;
-    bool xPos = NULL;
-    bool yPos = NULL;
+    // Represents whether the current line is increasing, decreasing, or remaining flat
+    // 1, -1, 0
+    int xPos = 0;
+    int yPos = 0;
+    allPts.push_back(coordinates[0].position);
+    // Checks whether each point is increasing, decreasing, or remaining the same
     for (int i = 0; i < coordinates.size(); i++) {
         int x = coordinates[i].position.x;
         int y = coordinates[i].position.y;
+        // Checking if the previous point was a local min or max in the x axis
         if (xPt.x != x) {
             if (x < xPt.x) {
-                if (xPos && xPos != NULL) {
-                    xPts.push_back(xPt);
+                if (xPos==1) {
+                    allPts.push_back(xPt);
                     addedX = xPt.x;
-                    xPos = NULL;
+                    xPos = 0;
                 }
                 else {
-                    xPos = false;
+                    xPos = -1;
                 }
             }
             if (x > xPt.x) {
-                if (!xPos && xPos != NULL) {
-                    xPts.push_back(xPt);
+                if (xPos == -1) {
+                    allPts.push_back(xPt);
                     addedX = xPt.x;
-                    xPos = NULL;
+                    xPos = 0;
                 }
                 else {
-                    xPos = true;
+                    xPos = 1;
                 }
             }
             xPt = coordinates[i].position;
         }
         else if (xPt.x != addedX) {
-            xPts.push_back(coordinates[i].position);
+            allPts.push_back(coordinates[i].position);
             addedX = xPt.x;
         }
 
+        // Checking if the previous point was a local min or max in the y axis
         if (yPt.y != y) {
             if (y < yPt.y) {
-                if (yPos && yPos != NULL) {
-                    yPts.push_back(yPt);
+                if (yPos==1) {
+                    allPts.push_back(yPt);
                     addedY = yPt.y;
-                    yPos = NULL;
+                    yPos = 0;
                 }
                 else {
-                    yPos = false;
+                    yPos = -1;
                 }
             }
             if (y > yPt.y) {
-                if (!yPos && yPos != NULL) {
-                    yPts.push_back(yPt);
+                if (yPos==-1) {
+                    allPts.push_back(yPt);
                     addedY = yPt.y;
-                    yPos = NULL;
+                    yPos = 0;
                 }
                 else {
-                    yPos = true;
+                    yPos = 1;
                 }
             }
             yPt = coordinates[i].position;
         }
         else if (yPt.y != addedY) {
-            yPts.push_back(coordinates[i].position);
+            allPts.push_back(coordinates[i].position);
             addedY = yPt.y;
         }
     }
-    allPts.push_back(coordinates[0].position);
     
-    for (pos2d xPt : xPts) {
-        allPts.push_back(xPt);
-    }
-    for (pos2d yPt : yPts) {
-        allPts.push_back(yPt);
-    }
     allPts.push_back(coordinates[coordinates.size()-1].position);
     return allPts;
 }
 
+// Converts a coordinate into a string
 string toStr(pos2d pos) {
     string str = "(" + pos.x;
     str += ", " + pos.y;
@@ -240,28 +203,27 @@ string toStr(pos2d pos) {
     return str;
 }
 
+// Main function that runs the code
 int main() {
     vector<string> strData = getData("data/05-02-2025-10-33.txt");
     vector<string> strData2 = getData("data/05-02-2025-10-34.txt");
     const char* format = "dd, MM, yyyy, HH, mm, ss";
     vector<timePos> coordinates;
     vector<timePos> coordinates2;
+    // Parsing string data
     for (string str : strData) {
         coordinates.push_back(parseDateTime(str));
     }
     for (string str : strData2) {
         coordinates2.push_back(parseDateTime(str));
     }
-    
-    // for (timePos coord : coordinates) {
-    //     cout << ctime(&coord.time) << "\n";
-    // }
-    double avg = getAvgDistance(coordinates, coordinates2);
-    cout << "Average:" << avg << "\n";
+    //double avg = getAvgDistance(coordinates, coordinates2);
+    //cout << "Average:" << avg << "\n";
     vector<pos2d> pts = getKeyPts(coordinates);
     cout << "Points:" << "\n";
     for (pos2d pt : pts) {
         cout << "(" << pt.x << ", " << pt.y << ")" << "\n";
     }
+    cout << "\n";
 
 }
