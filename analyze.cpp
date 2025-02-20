@@ -116,13 +116,21 @@ double getAvgDistance(vector<timePos> coordinates1, vector<timePos> coordinates2
     return avgDistance;
 }
 
+// Converts a coordinate into a string
+string toStr(pos2d pos) {
+    string str = "(" + pos.x;
+    str += ", " + pos.y;
+    str += ")";
+    return str;
+}
+
 // Returns a vector of the key points in the list of coordinates
 vector<pos2d> getKeyPts(vector<timePos> coordinates) {
     vector<pos2d> allPts;
     int addedX = coordinates[0].position.x;
     int addedY = coordinates[0].position.y;
-    pos2d xPt = coordinates[0].position;
-    pos2d yPt = coordinates[0].position;
+    pos2d lastX = coordinates[0].position;
+    pos2d lastY = coordinates[0].position;
     // Represents whether the current line is increasing, decreasing, or remaining flat
     // 1, -1, 0
     int xPos = 0;
@@ -133,75 +141,74 @@ vector<pos2d> getKeyPts(vector<timePos> coordinates) {
         int x = coordinates[i].position.x;
         int y = coordinates[i].position.y;
         // Checking if the previous point was a local min or max in the x axis
-        if (xPt.x != x) {
-            if (x < xPt.x) {
+        if (lastX.x != x) {
+            if (x < lastX.x) {
                 if (xPos==1) {
-                    allPts.push_back(xPt);
-                    addedX = xPt.x;
+                    allPts.push_back(lastX);
+                    addedX = lastX.x;
                     xPos = 0;
                 }
                 else {
                     xPos = -1;
                 }
             }
-            if (x > xPt.x) {
-                if (xPos == -1) {
-                    allPts.push_back(xPt);
-                    addedX = xPt.x;
+            if (x > lastX.x) {
+                if (xPos==-1) {
+                    
+                    allPts.push_back(lastX);
+                    addedX = lastX.x;
                     xPos = 0;
                 }
                 else {
                     xPos = 1;
                 }
             }
-            xPt = coordinates[i].position;
+            lastX = coordinates[i].position;
         }
-        else if (xPt.x != addedX) {
-            allPts.push_back(coordinates[i].position);
-            addedX = xPt.x;
+        else if (lastX.x != addedX) {
+            allPts.push_back(lastX);
+            addedX = lastX.x;
+            xPos = 0;
         }
 
         // Checking if the previous point was a local min or max in the y axis
-        if (yPt.y != y) {
-            if (y < yPt.y) {
+        if (lastY.y != y) {
+            if (y < lastY.y) {
                 if (yPos==1) {
-                    allPts.push_back(yPt);
-                    addedY = yPt.y;
+                    allPts.push_back(lastY);
+                    addedY = lastY.y;
                     yPos = 0;
                 }
                 else {
                     yPos = -1;
                 }
             }
-            if (y > yPt.y) {
+            if (y > lastY.y) {
                 if (yPos==-1) {
-                    allPts.push_back(yPt);
-                    addedY = yPt.y;
+                    
+                    allPts.push_back(lastY);
+                    addedY = lastY.y;
                     yPos = 0;
                 }
                 else {
                     yPos = 1;
                 }
             }
-            yPt = coordinates[i].position;
+            lastY = coordinates[i].position;
         }
-        else if (yPt.y != addedY) {
-            allPts.push_back(coordinates[i].position);
-            addedY = yPt.y;
+        else if (lastY.y != addedY) {
+            allPts.push_back(lastY);
+            addedY = lastY.y;
+            yPos = 0;
         }
+        
     }
     
     allPts.push_back(coordinates[coordinates.size()-1].position);
     return allPts;
 }
 
-// Converts a coordinate into a string
-string toStr(pos2d pos) {
-    string str = "(" + pos.x;
-    str += ", " + pos.y;
-    str += ")";
-    return str;
-}
+
 
 // Main function that runs the code
 int main() {
