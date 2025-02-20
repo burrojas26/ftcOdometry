@@ -202,6 +202,12 @@ vector<pos2d> getKeyPts(vector<timePos> coordinates) {
             yPos = 0;
         }
         
+        pos2d last = allPts[allPts.size()-1];
+        pos2d secondLast = allPts[allPts.size()-2];
+        if (last.x == secondLast.x && last.y == secondLast.y) {
+            allPts.pop_back();
+        }
+
     }
     
     allPts.push_back(coordinates[coordinates.size()-1].position);
